@@ -12,8 +12,9 @@ const rl = readline.createInterface({
 const MAX_INPUT_INTEGER = Number.MAX_SAFE_INTEGER;
 const MIN_INPUT_INTEGER = 0;
 
-const userEnter = async (text: string): Promise<string> =>
-  new Promise((resolve) => rl.question(text, resolve));
+function userEnter(text: string): Promise<string> {
+  return new Promise(resolve => rl.question(text, resolve));
+}
 
 function logicBit(bool: boolean): bit {
   return Number(bool) as bit;
@@ -44,7 +45,7 @@ function fullAdder(carryIn: bit, ...bits: bitPair): bitPair {
 function getBinarySum(input1: binaryData, input2: binaryData, bitLength: number): binaryData {
   console.log('getBinarySum args', input1, input2);
   const resultBits: binaryData = [];
-  let carryIn: bit = 0; // carry in
+  let carryIn: bit = 0;
   let stepsCounter = 0;
 
   console.time('getBinarySum time');
@@ -68,7 +69,7 @@ function getBinarySum(input1: binaryData, input2: binaryData, bitLength: number)
 function getBinaryInteger(data: string): binaryData {
   const int = parseInt(data, 10);
 
-  if (Number.isNaN(int) === true) {
+  if (Number.isNaN(int)) {
     throw new Error('data is not integer');
   }
 
@@ -101,7 +102,7 @@ function fixBitLength(bits: binaryData, length: number): binaryData {
 }
 
 async function main(): Promise<void> {
-  console.log('Integer range: 0 - 9007199254740991');
+  console.log(`Integer range: ${MIN_INPUT_INTEGER} - ${MAX_INPUT_INTEGER}`);
 
   const input1 = await userEnter('Enter 1st integer:');
   let binaryInput1 = getBinaryInteger(input1);
