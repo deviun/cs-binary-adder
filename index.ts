@@ -69,10 +69,18 @@ function getBinaryInteger(data: string): binaryData {
     throw new Error('invalid integer range');
   }
 
-  return int
-    .toString(2)
-    .split('')
-    .map((c) => parseInt(c,2) as bit);
+  let remainder: bit;
+  let res = int;
+
+  const binary: binaryData = [];
+
+  while (res > 0) {
+    remainder = (res % 2) as bit;
+    res = Math.floor(res / 2);
+    binary.unshift(remainder);
+  }
+
+  return binary;
 }
 
 function fixBitLength(bits: binaryData, length: number): binaryData {
