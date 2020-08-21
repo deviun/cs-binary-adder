@@ -16,18 +16,10 @@ function userEnter(text: string): Promise<string> {
   return new Promise(resolve => rl.question(text, resolve));
 }
 
-function logicBit(bool: boolean): bit {
-  return Number(bool) as bit;
-}
-
-function XORBit(...bits: bitPair): bit {
-  return logicBit(( bits[0] || bits[1] ) && !( bits[0] && bits[1] ));
-}
-
 function halfAdder(...bits: bitPair): bitPair {
   return [
-    XORBit(bits[0], bits[1]),
-    logicBit(Boolean(bits[0] && bits[1])),
+    (bits[0] ^ bits[1]) as bit,
+    (bits[0] & bits[1]) as bit,
   ];
 }
 
@@ -38,7 +30,7 @@ function fullAdder(carryIn: bit, ...bits: bitPair): bitPair {
   return [
     secondAdderBits[0],
     // carry output
-    logicBit(Boolean(secondAdderBits[1] || firstAdderBits[1])),
+    (secondAdderBits[1] | firstAdderBits[1]) as bit,
   ];
 }
 
