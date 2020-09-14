@@ -10,7 +10,7 @@ const rl = readline.createInterface({
 });
 
 const MAX_INPUT_INTEGER = Number.MAX_SAFE_INTEGER;
-const MIN_INPUT_INTEGER = 0;
+const MIN_INPUT_INTEGER = Number.MIN_SAFE_INTEGER;
 
 function userEnter(text: string): Promise<string> {
   return new Promise(resolve => rl.question(text, resolve));
@@ -58,6 +58,16 @@ function getBinarySum(input1: binaryData, input2: binaryData, bitLength: number)
   return resultBits;
 }
 
+function getNegativeBits(bits: binaryData): binaryData {
+  const length = bits.length;
+  const one: binaryData = [...Array(length - 1).fill(0), 1];
+  // invert bits
+  bits = bits.map(n => Number(!n) as bit);
+
+  // add 1
+  return getBinarySum(bits, one, length);
+}
+
 function getBinaryInteger(data: string): binaryData {
   const int = parseInt(data, 10);
 
@@ -69,8 +79,9 @@ function getBinaryInteger(data: string): binaryData {
     throw new Error('invalid integer range');
   }
 
+  const isNegative = int < 0;
   let remainder: bit;
-  let res = int;
+  let res = Math.abs(int);
 
   const binary: binaryData = [];
 
@@ -80,25 +91,23 @@ function getBinaryInteger(data: string): binaryData {
     binary.unshift(remainder);
   }
 
-  return binary;
+  binary.unshift(0); // add bit of sign
+
+  return isNegative ? getNegativeBits(binary) : binary;
 }
 
-function fixBitLength(bits: binaryData, length: number): binaryData {
+function signExtension(bits: binaryData, length: number): binaryData {
   const outBits: binaryData = [...bits];
   const diff = length - bits.length;
 
   if (diff === 0) {
-    console.log('fixBitLength skip diff', bits);
+    console.log('signExtension skip diff', bits);
     return outBits;
   }
 
-  for (let i = 0; i < diff; i += 1) {
-    outBits.unshift(0);
-  }
+  const bitOfSign = outBits[0];
 
-  console.log('fixBitLength', { bits: bits.length, outBits: outBits.length, length });
-
-  return outBits;
+  return [...Array(diff).fill(bitOfSign), ...outBits];
 }
 
 async function main(): Promise<void> {
@@ -109,15 +118,27 @@ async function main(): Promise<void> {
   const input2 = await userEnter('Enter 2nd integer:');
   let binaryInput2 = getBinaryInteger(input2);
 
-  const maxBitLength = Math.max(binaryInput1.length, binaryInput2.length);
+  const commonBitLength = Math.max(binaryInput1.length, binaryInput2.length);
 
-  console.log({ 1: binaryInput1.length, 2: binaryInput2.length, maxBitLength });
+  console.log({ 1: binaryInput1.length, 2: binaryInput2.length, maxBitLength: commonBitLength });
 
-  binaryInput1 = fixBitLength(binaryInput1, maxBitLength);
-  binaryInput2 = fixBitLength(binaryInput2, maxBitLength);
+  binaryInput1 = signExtension(binaryInput1, commonBitLength);
+  binaryInput2 = signExtension(binaryInput2, commonBitLength);
 
-  const binarySum = getBinarySum((binaryInput1), binaryInput2, maxBitLength);
-  const decimalSum = parseInt(binarySum.join(''), 2);
+  let binarySum = getBinarySum((binaryInput1), binaryInput2, commonBitLength);
+  const overflow = binarySum.length - commonBitLength;
+
+  if (overflow) {
+    binarySum.splice(0, overflow);
+  }
+
+  let signOfSum = binarySum.shift();
+
+  if (signOfSum) {
+    binarySum = getNegativeBits([signOfSum, ...binarySum]);
+  }
+
+  const decimalSum = parseInt(binarySum.join(''), 2) * (signOfSum ? -1 : 1);
 
   console.log({ binarySum, decimalSum });
 }
